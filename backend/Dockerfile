@@ -1,20 +1,28 @@
-# Utiliser une image de base node
-FROM node:18
+# Check out https://hub.docker.com/_/node to select a new base image
+FROM docker.io/library/node:18-slim
 
-# Définir le répertoire de travail dans le conteneur
-WORKDIR /usr/src/app
+# Set to a non-root built-in user `node`
+USER node
 
-# Copier le package.json et package-lock.json
-COPY package*.json ./
+# Create app directory (with user `node`)
+RUN mkdir -p /home/node/app
 
-# Installer les dépendances
+WORKDIR /home/node/app
+
+# Install app dependencies
+# A wildcard is used to ensure both package.json AND package-lock.json are copied
+# where available (npm@5+)
+COPY --chown=node package*.json ./
+
 RUN npm install
 
-# Copier tout le code source
-COPY . .
+# Bundle app source code
+COPY --chown=node . .
 
-# Exposer le port de l'API
-EXPOSE 3000
+RUN npm run build
 
-# Commande pour démarrer l'API
-CMD ["npm", "start"]
+# Bind to all network interfaces so that it can be mapped to the host OS
+ENV HOST=0.0.0.0 PORT=3000
+
+EXPOSE ${PORT}
+CMD [ "node", "." ]

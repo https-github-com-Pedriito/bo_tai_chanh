@@ -1,8 +1,12 @@
 import resto from "../assets/resto.jpg";
-
+import {useNavigate} from 'react-router-dom'
 const About = () => {
+  const navigate = useNavigate()
+  const handleClick = () => {
+    navigate('/Pagemenu')
+  }
   return (
-    <div className="p-8">
+    <div className="p-8 bg-black">
       {/* Contenu adaptatif pour mobile */}
       <div className="flex flex-col md:flex-row justify-center items-center md:space-x-28 mt-10 space-y-8 md:space-y-0">
         {/* Image en haut sur mobile */}
@@ -28,7 +32,7 @@ const About = () => {
 
       {/* Bouton centré en dessous */}
       <div className="flex justify-center mt-12 mb-8">
-        <button
+        <button onClick={handleClick} 
         className=" bg-green-600 text-white rounded-full shadow-neumorphic px-8 py-5  hover: cursor-pointer transition-transform transform active:shadow-neumorphic-inset active:translate-y-2 ">
           Découvrir le Menu
         </button>

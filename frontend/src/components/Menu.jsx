@@ -1,19 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
+import { fetchCategories, fetchProducts, fetchSubCategories } from "../api";
 
-import cafe from "../assets/Boissons/cafe.jpg";
-import zombie from "../assets/Boissons/zombie.jpg";
-import perlesdecoco from "../assets/Desserts/pdc.jpg";
-import tiramisu from '../assets/Desserts/tiramisu.jpg';
-import Milshake from '../assets/Desserts/Milshake.jpg';
-import beignet_crevettes from '../assets/Thailandais/entrées/beignet_crevettes.jpeg'
-import pad_thai_poulet from '../assets/Thailandais/plats/pad_thai_poulet.jpeg'
-import Pad_thod_sam_rot from '../assets/Thailandais/poissons/Pad_thod_sam_rot.jpeg'
-import yam_pet_yang from '../assets/Thailandais/salades et soupes/Yam_pet_yang.jpeg'
-import soupe_miso from '../assets/Japonais/soupe_miso.jpeg'
-import bo_bun_nem_porc from '../assets/Vietnamien/Plats/bo_bun_nem_porc.jpeg'
-import pates_imperieux_nems from '../assets/Vietnamien/Entrees/Pates_imperiaux.jpeg'
-import lap_kai from '../assets/Laotien/lap_kai.jpeg'
 // Composant Card pour afficher une seule carte
 const Card = ({ imageSrc, title, price }) => {
   return (
@@ -21,7 +9,9 @@ const Card = ({ imageSrc, title, price }) => {
       <img src={imageSrc} alt={title} className="w-full h-48 object-cover" />
       <div className="p-4">
         <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-        <p className="text-gray-600 mt-2">{price}</p>
+        <p className="text-gray-600 mt-2">
+          {price !== null ? price : "Prix non disponible"}
+        </p>
       </div>
     </div>
   );
@@ -35,115 +25,88 @@ Card.propTypes = {
 
 // Composant Menu qui affiche une grille de cartes avec une barre d'onglets
 const Menu = () => {
-  const [selectedCategory, setSelectedCategory] = useState("Laotien");
+  const [categories, setCategories] = useState([]);
+  const [menuItems, setMenuItems] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
 
-  const menuItems = [
-    {
-      category: "Laotien",
-      imageSrc: lap_kai,
-      title: "Lap Kaï",
-      price: "12.99",
-    },
-    {
-      category: "Vietnamien",
-      subCategory: "Entrées Vietnamiennes",
-      imageSrc: pates_imperieux_nems,
-      title: "Pates impériaux Nems",
-      price: "14.99",
-    },
-    {
-      category: "Vietnamien",
-      subCategory: "Plats Vietnamiennes",
-      imageSrc: bo_bun_nem_porc,
-      title: "Vietnamese Main Dish",
-      price: "39.99",
-    },
-    {
-      category: "Japonais",
-      imageSrc: soupe_miso,
-      title: "Soupe Miso",
-      price: "19.99",
-    },
-    {
-      category: "Thailandais",
-      subCategory: "Entrées et accompagnements",
-      imageSrc: beignet_crevettes,
-      title: "Beignet Crevettes",
-      price: "15.99",
-    },
-    {
-      category: "Thailandais",
-      subCategory: "Salades et soupes",
-      imageSrc: yam_pet_yang,
-      title: "Yam Pet Yang",
-      price: "15.99",
-    },
-    {
-      category: "Thailandais",
-      subCategory: "Plats ",
-      imageSrc: pad_thai_poulet,
-      title: "Pad Thai Poulet",
-      price: "16.99",
-    },
-    {
-      category:"Thailandais",
-      subCategory: "Poissons",
-      imageSrc: Pad_thod_sam_rot,
-      title:"Pad Thod Sam Rot",
-      price: "22,99"
+  // Fonction pour récupérer les catégories
+  const fetchCategoriesData = async () => {
+    const data = await fetchCategories();
+    setCategories(data);
+    if (data.length > 0) {
+      setSelectedCategory(data[0].Name); // Sélectionne la première catégorie par défaut
+    }
+  };
 
-    },
-    {
-      category: "Desserts",
-      subCategory: "Desserts Classiques",
-      imageSrc: perlesdecoco,
-      title: "Perles de coco",
-      price: "6.99",
-    },
-    {
-      category: "Desserts",
-      subCategory: "Spécialités Glacées",
-      imageSrc: tiramisu,
-      title: "Tiramisu glacé",
-      price: "4.99",
-    },
-    {
-      category: "Desserts",
-      subCategory: "Milshake",
-      imageSrc: Milshake,
-      title: "Milshake",
-      price: "5.99",
-    },
-    {
-      category: "Boissons",
-      subCategory: "Boissons chaudes",
-      imageSrc: cafe,
-      title: "café",
-      price: "5.99",
-    },
-    {
-      category: "Boissons",
-      subCategory: "Cocktails",
-      imageSrc:zombie,
-      title: "zombie",
-      price: "5.99",
-    },
-  ];
+  // Fetch categories and subcategories on component mount
+  useEffect(() => {
+    fetchCategoriesData();
+  }, []);
 
-  const categories = [
-    "Laotien",
-    "Vietnamien",
-    "Japonais",
-    "Thailandais",
-    "Desserts",
-    "Boissons",
-  ];
+  // Fetch products and subcategories on component mount
+  useEffect(() => {
+    const fetchMenuItems = async () => {
+      try {
+        const products = await fetchProducts();
+        const subCategories = await fetchSubCategories();
+        const categories = await fetchCategories();
+    
+        // Création d'un mapping de categoryId à category Name
+        const categoryMap = Object.fromEntries(
+          categories.map((category) => [category.id, category.Name])
+        );
+        
+        // Mettre à jour les items du menu après la récupération
+        const allMenuItems = products.map((product) => {
+          // Trouver la sous-catégorie en utilisant le nom
+          let subCategory = null;
+          for (const sub of subCategories) {
+            if (sub.name === product.subCategoryId) {
+              subCategory = sub;
+              break; // Sortir de la boucle une fois trouvé
+            }
+          }
+    
+          const menuItem = {
+            title: product.name,
+            price: product.price,
+            imageSrc: product.imageUrl || "default_image_url.jpg",
+            category: subCategory
+              ? categoryMap[subCategory.categoryId]
+              : "Non Défini", // Vérifiez si categoryId est bien récupéré
+            subCategory: subCategory ? subCategory.name : "Non Défini",
+          };
+    
+          return menuItem;
+        });
+    
+        // Mettez à jour l'état menuItems
+        setMenuItems(allMenuItems); // Ajout de cette ligne
+      } catch (error) {
+        console.error(
+          "Erreur lors de la récupération des items de menu :",
+          error
+        );
+      }
+    };
 
-  const filteredItems = menuItems.filter(
-    (item) => item.category === selectedCategory
-  );
+    fetchMenuItems();
+  }, [selectedCategory]);
 
-  // Group items by subCategory
+  // Met à jour les éléments filtrés lorsque la catégorie sélectionnée change
+  useEffect(() => {
+    const newFilteredItems = menuItems.filter(
+      (item) => item.category === selectedCategory
+    );
+    setFilteredItems(newFilteredItems);
+  
+    // Ajout du console.log ici pour afficher le nombre d'objets et leurs noms
+    console.log(`Nombre d'objets à afficher : ${newFilteredItems.length}`);
+    console.log("Objets filtrés :", newFilteredItems); // Ajout d'un log pour voir les éléments filtrés
+  }, [selectedCategory, menuItems]);
+
+  // Groupement des éléments par sous-catégorie
   const groupedItems = filteredItems.reduce((acc, item) => {
     if (!acc[item.subCategory]) {
       acc[item.subCategory] = [];
@@ -153,20 +116,22 @@ const Menu = () => {
   }, {});
 
   return (
-    <div className="p-8">
+    <div className="p-8 bg-black">
       {/* Barre d'onglets */}
-      <div className="flex justify-start space-x-2 p-4 bg-gray-200 gap-20 px-8 rounded-full shadow-lg mb-12 bg-opacity-40 overflow-x-auto whitespace-nowrap ">
+      <div className="flex justify-start space-x-2 p-4 bg-gray-200 gap-20 px-8 rounded-full shadow-lg mb-12 bg-opacity-40 overflow-x-auto whitespace-nowrap">
         {categories.map((category) => (
           <button
-            key={category}
-            onClick={() => setSelectedCategory(category)}
+            key={category.id}
+            onClick={() => {
+              setSelectedCategory(category.Name); // Met à jour la catégorie sélectionnée
+            }}
             className={`px-8 py-5 rounded-full shadow-lg ${
-              selectedCategory === category
+              selectedCategory === category.Name
                 ? "bg-green-500 text-white uppercase"
                 : "bg-whitespecial text-gray-800 uppercase"
             }`}
           >
-            {category}
+            {category.Name}
           </button>
         ))}
       </div>
@@ -175,7 +140,7 @@ const Menu = () => {
       <div className="p-4 space-y-8">
         {Object.keys(groupedItems).map((subCategory) => (
           <div key={subCategory}>
-            {subCategory && subCategory !== "undefined" && (
+            {subCategory && (
               <h2 className="text-xl font-bold text-gray-700 mb-4">
                 {subCategory}
               </h2>
