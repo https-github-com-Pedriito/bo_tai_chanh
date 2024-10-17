@@ -1,2 +1,12 @@
+# Node modules
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Log files
 *.log
-.embold/
+
+# Ignore Embold logs
+.embold/vscode-logs.log
