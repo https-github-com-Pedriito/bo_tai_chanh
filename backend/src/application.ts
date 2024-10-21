@@ -20,7 +20,7 @@ export class BackendApplication extends BootMixin(
 
     //Set up CORS 
     this.bind('rest.cors:options').to({
-      origin: 'https://localhost:5173', // Remplacez '*' par votre domaine de frontend en production
+      origin: '*', // Remplacez '*' par votre domaine de frontend en production
       methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
       preflightContinue: false,
       optionsSuccessStatus: 204,

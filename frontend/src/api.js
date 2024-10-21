@@ -1,8 +1,8 @@
 // catégories
-
+const URL_BASE = import.meta.env.VITE_API_URL
 const fetchCategories = async () => {
   try {
-    const response = await fetch('http://localhost:3000/categories')
+    const response = await fetch(`${URL_BASE}/categories`)
     if (!response.ok)
       throw new Error('Erreur lors de la récupération des catégories')
     const data = await response.json() // Retirer 'const' ici
@@ -17,7 +17,7 @@ const fetchCategories = async () => {
 
 const fetchSubCategories = async () => {
   try {
-    const response = await fetch('http://localhost:3000/sub-categories')
+    const response = await fetch(`${URL_BASE}/sub-categories`)
     if (!response.ok)
       throw new Error('Erreur lors de la récupération des sous-catégories')
     const data = await response.json()
@@ -32,7 +32,7 @@ const fetchSubCategories = async () => {
 
 const fetchProducts = async () => {
   try {
-    const response = await fetch('http://localhost:3000/products')
+    const response = await fetch(`${URL_BASE}/products`)
     if (!response.ok)
       throw new Error('Erreur lors de la récupération des produits')
     const data = await response.json()

@@ -30,14 +30,14 @@ const Dashboard = () => {
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
+  const URL_BASE = import.meta.env.VITE_API_URL;
   // Différentes fonctions pour les appels d'API
   // Fonction  catégorie
   // categories
   const addCategory = async () => {
     if (!categoryInput) return;
     try {
-      const response = await fetch("http://localhost:3000/categories", {
+      const response = await fetch(`${URL_BASE}/categories`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ Name: categoryInput }),
@@ -57,7 +57,7 @@ const Dashboard = () => {
   const updateCategory = async (id, categoryInput) => {
     try {
       const body = JSON.stringify({ Name: categoryInput });
-      const response = await fetch(`http://localhost:3000/categories/${id}`, {
+      const response = await fetch(`${URL_BASE}/categories/${id}`, {
         method: "PUT",
         body: body,
         headers: { "Content-Type": "application/json" },
@@ -75,7 +75,7 @@ const Dashboard = () => {
 
   const deleteCategory = async (id) => {
     try {
-      const response = await fetch(`http://localhost:3000/categories/${id}`, {
+      const response = await fetch(`${URL_BASE}/categories/${id}`, {
         method: "DELETE",
       });
 
@@ -95,7 +95,7 @@ const Dashboard = () => {
   const deleteSubCategory = async (id) => {
     try {
       const response = await fetch(
-        `http://localhost:3000/sub-categories/${id}`,
+        `${URL_BASE}/sub-categories/${id}`,
         {
           method: "DELETE",
         }
@@ -118,7 +118,7 @@ const Dashboard = () => {
 
     try {
       // Envoyer une requête POST à l'API
-      const response = await fetch("http://localhost:3000/sub-categories", {
+      const response = await fetch(`${URL_BASE}/sub-categories`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -158,7 +158,7 @@ const Dashboard = () => {
         categoryId: updatedSubCategory.categoryId, // ID de la catégorie associée
       });
       const response = await fetch(
-        `http://localhost:3000/sub-categories/${subCategoryId}`,
+        `${URL_BASE}/sub-categories/${subCategoryId}`,
         {
           method: "PATCH", // Vous pouvez utiliser PATCH si vous ne mettez à jour qu'une partie des champs
           headers: {
@@ -195,7 +195,7 @@ const Dashboard = () => {
         imageUrl: productInput.image, // Utilisation de "imageUrl"
         options: productInput.options,
       });
-      const response = await fetch("http://localhost:3000/products", {
+      const response = await fetch(`${URL_BASE}/products`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: body,
@@ -229,7 +229,7 @@ const Dashboard = () => {
 
   const deleteProduct = async (id) => {
     try {
-      const response = await fetch(`http://localhost:3000/products/${id}`, {
+      const response = await fetch(`${URL_BASE}/products/${id}`, {
         method: "DELETE",
       });
 
@@ -255,7 +255,7 @@ const Dashboard = () => {
         imageUrl: productInput.image, // Utilisation de "imageUrl"
         options: productInput.options,
       });
-      await fetch(`http://localhost:3000/products/${productIdToEdit}`, {
+      await fetch(`${URL_BASE}/products/${productIdToEdit}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -292,9 +292,9 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    fetchData("http://localhost:3000/categories", setCategories);
-    fetchData("http://localhost:3000/sub-categories", setSubCategories);
-    fetchData("http://localhost:3000/products", setProducts);
+    fetchData(`${URL_BASE}/categories`, setCategories);
+    fetchData(`${URL_BASE}/sub-categories`, setSubCategories);
+    fetchData(`${URL_BASE}/products`, setProducts);
   }, []);
 
   const renderCategories = () => (
@@ -341,7 +341,7 @@ const Dashboard = () => {
                         )
                       );
                       fetchData(
-                        "http://localhost:3000/categories",
+                        `${URL_BASE}/categories`,
                         setCategories
                       );
                       setCategoryInput(""); // Réinitialise le champ de saisie
@@ -483,7 +483,7 @@ const Dashboard = () => {
                         updatedSubCategory
                       ).then(() => {
                         fetchData(
-                          "http://localhost:3000/sub-categories",
+                          `${URL_BASE}/sub-categories`,
                           setSubCategories
                         );
                         setSubCategories((prevSubCategories) =>
@@ -533,7 +533,7 @@ const Dashboard = () => {
                         deleteSubCategory(subCategory.id).then(() => {
                           // Après la suppression, rafraîchir les sous-catégories
                           fetchData(
-                            "http://localhost:3000/sub-categories",
+                            `${URL_BASE}/sub-categories`,
                             setSubCategories
                           );
                         });
@@ -747,7 +747,7 @@ const Dashboard = () => {
             <button
               onClick={() =>
                 updateProduct(productIdToEdit).then(() => {
-                  fetchData("http://localhost:3000/products", setProducts);
+                  fetchData(`${URL_BASE}/products`, setProducts);
                   setIsModalOpen(false);
                 })
               } // Passer l'ID du produit à mettre à jour
@@ -850,7 +850,7 @@ const Dashboard = () => {
           />
           <button
             onClick={() => {
-              if (password === "admin") {
+              if (password === import.meta.env.VITE_REACT_APP_DASHBOARD_PASSWORD) {
                 setIsLoggedIn(true);
                 setError(""); // Réinitialiser l'erreur
               } else {
