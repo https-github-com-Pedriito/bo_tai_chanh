@@ -10,7 +10,7 @@ const Card = ({ imageSrc, title, price }) => {
       <div className="p-4">
         <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
         <p className="text-gray-600 mt-2">
-          {price !== null ? price : "Prix non disponible"}
+          {price !== null ? `${price} €` : "Prix non disponible"}
         </p>
       </div>
     </div>

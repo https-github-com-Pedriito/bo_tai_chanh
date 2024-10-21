@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Footer from "./Footer";
 import Header from "./Header";
-import { fetchProducts } from "../api";
+import { Input } from "../components/ui/input";
 
 const Dashboard = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -22,18 +22,20 @@ const Dashboard = () => {
     description: "",
     options: "",
   });
+  const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [setIsEditing] = useState(false);
   const [productIdToEdit, setProductIdToEdit] = useState(null);
+  const filteredProducts = products.filter((product) =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   // Différentes fonctions pour les appels d'API
   // Fonction  catégorie
-
   // categories
   const addCategory = async () => {
     if (!categoryInput) return;
-    console.log("Data :", JSON.stringify({ Name: categoryInput }));
     try {
       const response = await fetch("http://localhost:3000/categories", {
         method: "POST",
@@ -60,7 +62,6 @@ const Dashboard = () => {
         body: body,
         headers: { "Content-Type": "application/json" },
       });
-      console.log("Body:", body);
       if (!response.ok)
         throw new Error("Erreur lors de la modification de la catégorie");
       setCategories((prevCategories) =>
@@ -112,9 +113,6 @@ const Dashboard = () => {
   };
 
   const addSubCategory = async () => {
-    console.log("Sub-category Input:", subCategoryInput);
-    console.log("Selected Category:", selectedCategory);
-
     // Vérifiez que le champ d'entrée n'est pas vide et qu'une catégorie est sélectionnée
     if (!subCategoryInput || !selectedCategory) return; // Corrigé ici pour vérifier que selectedCategory n'est pas vide
 
@@ -133,9 +131,6 @@ const Dashboard = () => {
       if (!response.ok) {
         throw new Error("Erreur lors de l'ajout de la sous-catégorie");
       }
-
-      console.log("Response:", response);
-
       // Analysez la réponse JSON pour obtenir la nouvelle sous-catégorie
       const newSubCategory = await response.json();
 
@@ -162,7 +157,6 @@ const Dashboard = () => {
         id: subCategoryId, // Nom de la sous-catégorie
         categoryId: updatedSubCategory.categoryId, // ID de la catégorie associée
       });
-      console.log("Body:", body);
       const response = await fetch(
         `http://localhost:3000/sub-categories/${subCategoryId}`,
         {
@@ -179,7 +173,6 @@ const Dashboard = () => {
       }
 
       const data = await response.json();
-      console.log("Sous-catégorie mise à jour avec succès:", data);
       // Vous pouvez retourner les données mises à jour pour les traiter après l'appel
       return data;
     } catch (error) {
@@ -191,7 +184,8 @@ const Dashboard = () => {
 
   const addProduct = async () => {
     // Vérifiez que le nom et le prix du produit sont fournis
-    if (!productInput.name || !productInput.price) return;
+    if (!productInput.name || !productInput.price || !productInput.image)
+      return;
     try {
       const body = JSON.stringify({
         name: productInput.name,
@@ -201,7 +195,6 @@ const Dashboard = () => {
         imageUrl: productInput.image, // Utilisation de "imageUrl"
         options: productInput.options,
       });
-      console.log("Body:", body);
       const response = await fetch("http://localhost:3000/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -236,7 +229,6 @@ const Dashboard = () => {
 
   const deleteProduct = async (id) => {
     try {
-      console.log("id", id);
       const response = await fetch(`http://localhost:3000/products/${id}`, {
         method: "DELETE",
       });
@@ -264,22 +256,27 @@ const Dashboard = () => {
         options: productInput.options,
       });
       await fetch(`http://localhost:3000/products/${productIdToEdit}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: body,
       });
       // Recharger les produits ou mettre à jour l'état local
       setIsEditing(false);
       setProductIdToEdit(null);
-      setProductInput({ name: '', price: '', description: '', subCategory: '', image: '', options: '' }); // Réinitialiser les champs
+      setProductInput({
+        name: "",
+        price: "",
+        description: "",
+        subCategory: "",
+        image: "",
+        options: "",
+      }); // Réinitialiser les champs
     } catch (error) {
       console.error("Erreur lors de la mise à jour du produit", error);
     }
   };
-  
-  
 
   // Fonction pour récupérer les données depuis l'API
   const fetchData = async (url, setData) => {
@@ -308,11 +305,11 @@ const Dashboard = () => {
         value={categoryInput}
         onChange={(e) => setCategoryInput(e.target.value)}
         placeholder="Ajouter une catégorie"
-        className="border border-green-500 bg-gray-600 p-2 rounded-full mb-4 w-full"
+        className=" bg-white p-2 rounded-lg placeholder:text-green-800 h-12 text-green-800 mb-4 w-full"
       />
       <button
         onClick={() => addCategory(categoryInput, selectedCategory)}
-        className="bg-green-600 text-white p-2 rounded-full mb-4 w-full sm:w-auto hover:bg-green-500 transition duration-200"
+        className="bg-green-600 text-white p-3 rounded-lg mb-4 w-full sm:w-auto hover:bg-green-500 transition duration-200"
       >
         Ajouter Catégorie
       </button>
@@ -404,13 +401,13 @@ const Dashboard = () => {
         value={subCategoryInput}
         onChange={(e) => setSubCategoryInput(e.target.value)}
         placeholder="Ajouter une sous-catégorie"
-        className="border border-green-500 bg-gray-700 text-white p-3 rounded-full mb-4 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
+        className=" bg-white text-green-800 p-3 rounded-lg mb-4 w-full placeholder:text-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
       />
 
       <select
         value={selectedCategory}
         onChange={(e) => setSelectedCategory(e.target.value)}
-        className="border border-green-500 bg-gray-700 text-white p-3 rounded-full mb-4 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
+        className=" bg-white text-green-800 p-3 rounded-lg mb-4 w-full focus:outline-none h-12 focus:ring-2 focus:ring-green-500 transition duration-200"
       >
         <option value="">Sélectionnez une catégorie</option>
         {categories.map((category) => (
@@ -422,7 +419,7 @@ const Dashboard = () => {
 
       <button
         onClick={addSubCategory}
-        className="bg-green-600 text-white p-3 rounded-full mb-4 w-full sm:w-auto hover:bg-green-500 transition duration-200"
+        className="bg-green-600 text-white p-3 rounded-lg mb-4 w-full sm:w-auto hover:bg-green-500 transition duration-200"
       >
         Ajouter Sous-Catégorie
       </button>
@@ -480,7 +477,6 @@ const Dashboard = () => {
                         name: subCategoryInput, // Met à jour le nom de la sous-catégorie
                         categoryId: subCategory.categoryId, // Assurez-vous que l'ID de la catégorie est mis à jour
                       };
-                      console.log("Updated Sub-Category:", updatedSubCategory);
 
                       updateSubCategory(
                         subCategory.id,
@@ -555,10 +551,36 @@ const Dashboard = () => {
       </div>
     </section>
   );
+
   const renderProducts = () => (
     <section className="products">
       <h2 className="text-xl sm:text-2xl font-semibold mb-4">Produits</h2>
-  
+
+      <div className="flex items-center w-full max-w-full space-x-2 rounded-lg border border-gray-300 bg-gray-50 dark:bg-gray-900 px-3.5 py-2 mt-5 mb-12">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={1.5}
+          stroke="green"
+          className="size-6"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+          />
+        </svg>
+
+        <Input
+          type="search"
+          placeholder="Rechercher un produit ..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full border-0 h-8 font-semibold text-green-800 placeholder:text-green-800"
+        />
+      </div>
+
       <input
         type="text"
         value={productInput.name}
@@ -566,9 +588,9 @@ const Dashboard = () => {
           setProductInput({ ...productInput, name: e.target.value })
         }
         placeholder="Nom du produit"
-        className="border border-green-500 bg-gray-700 p-3 rounded-full mb-4 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
+        className=" bg-white p-3 rounded-lg mb-4 w-full focus:outline-none focus:ring-2 text-green-800 focus:ring-green-500 transition duration-200 placeholder:text-green-800"
       />
-  
+
       <input
         type="number"
         value={productInput.price}
@@ -576,9 +598,9 @@ const Dashboard = () => {
           setProductInput({ ...productInput, price: e.target.value })
         }
         placeholder="Prix du produit"
-        className="border border-green-500 bg-gray-700 p-3 rounded-full mb-4 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
+        className=" bg-white p-3 rounded-lg mb-4 w-full focus:outline-none focus:ring-2 text-green-800 focus:ring-green-500 transition duration-200 placeholder:text-green-800"
       />
-  
+
       <input
         type="text"
         value={productInput.description}
@@ -586,24 +608,26 @@ const Dashboard = () => {
           setProductInput({ ...productInput, description: e.target.value })
         }
         placeholder="Description du produit"
-        className="border border-green-500 bg-gray-700 p-3 rounded-full mb-4 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
+        className="text-green-800 bg-white p-3 rounded-lg mb-4 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200 placeholder:text-green-800"
       />
-  
+
       <select
         value={productInput.subCategory}
         onChange={(e) =>
           setProductInput({ ...productInput, subCategory: e.target.value })
         }
-        className="border border-green-500 bg-gray-700 p-3 rounded-full mb-4 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
+        className="bg-white text-green-800 p-3 rounded-lg mb-4 w-full h-12 focus:outline-none  focus:ring-2 focus:ring-green-500 transition duration-200"
       >
-        <option value="">Sélectionnez une sous-catégorie</option>
+        <option value="" className="bg-white">
+          Sélectionnez une sous-catégorie
+        </option>
         {subCategories.map((subCategory) => (
           <option key={subCategory._id} value={subCategory._id}>
             {subCategory.name}
           </option>
         ))}
       </select>
-  
+
       <input
         type="text"
         value={productInput.image}
@@ -611,35 +635,40 @@ const Dashboard = () => {
           setProductInput({ ...productInput, image: e.target.value })
         }
         placeholder="URL de l'image du produit"
-        className="border border-green-500 bg-gray-700 p-3 rounded-full mb-4 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
+        className="text-green-800 bg-white p-3 rounded-lg mb-4 w-full  placeholder:text-green-800 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
       />
-  
+
       <select
         value={productInput.options}
         onChange={(e) =>
           setProductInput({ ...productInput, options: e.target.value })
         }
-        className="border border-green-500 bg-gray-700 p-3 rounded-full mb-4 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
+        className="text-green-800 bg-white p-3 rounded-lg mb-4 w-full focus:outline-none h-12 focus:ring-2 focus:ring-green-500 transition duration-200"
       >
         <option value="">Sélectionnez une option</option>
         <option value="avec oeufs">Avec oeufs</option>
         <option value="sans oeufs">Sans oeufs</option>
         <option value="1 oeuf">1 oeuf</option>
         <option value="2 oeufs">2 oeufs</option>
+        <option value="piment 1">piment niveau 1</option>
+        <option value="piment 2">piment niveau 2</option>
+        <option value="piment 3">piment niveau 3</option>
       </select>
-  
+
       <button
         onClick={addProduct} // Ajout d'un produit
-        className="bg-green-600 text-white p-3 rounded-full mb-4 w-full sm:w-auto hover:bg-green-500 transition duration-200"
+        className="bg-green-600 text-white p-3 rounded-lg mb-4 w-full sm:w-auto hover:bg-green-500 transition duration-200"
       >
         Ajouter Produit
       </button>
-  
+
       {/* Afficher le modal d'édition si ouvert */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-gray-700 p-4 rounded-lg shadow-md">
-            <h3 className="text-lg font-semibold text-white mb-2">Édition du Produit</h3>
+            <h3 className="text-lg font-semibold text-white mb-2">
+              Édition du Produit
+            </h3>
             <input
               type="text"
               value={productInput.name}
@@ -647,9 +676,9 @@ const Dashboard = () => {
                 setProductInput({ ...productInput, name: e.target.value })
               }
               placeholder="Nom du produit"
-              className="border border-green-500 bg-gray-800 p-2 rounded-full mb-2 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
+              className="text-green-800 bg-gray-800 p-2 rounded-full mb-2 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
             />
-  
+
             <input
               type="number"
               value={productInput.price}
@@ -657,25 +686,31 @@ const Dashboard = () => {
                 setProductInput({ ...productInput, price: e.target.value })
               }
               placeholder="Prix du produit"
-              className="border border-green-500 bg-gray-800 p-2 rounded-full mb-2 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
+              className="placeholder:text-green-800 bg-gray-800 p-2 rounded-full mb-2 w-full  focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
             />
-  
+
             <input
               type="text"
               value={productInput.description}
               onChange={(e) =>
-                setProductInput({ ...productInput, description: e.target.value })
+                setProductInput({
+                  ...productInput,
+                  description: e.target.value,
+                })
               }
               placeholder="Description du produit"
-              className="border border-green-500 bg-gray-800 p-2 rounded-full mb-2 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
+              className="placeholder:text-green-800 bg-gray-800 p-2 rounded-full mb-2 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
             />
-  
+
             <select
               value={productInput.subCategory}
               onChange={(e) =>
-                setProductInput({ ...productInput, subCategory: e.target.value })
+                setProductInput({
+                  ...productInput,
+                  subCategory: e.target.value,
+                })
               }
-              className="border border-green-500 bg-gray-800 p-2 rounded-full mb-2 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
+              className="placeholder:text-green-800 bg-gray-800 p-2 rounded-full mb-2 w-full h-12 focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
             >
               <option value="">Sélectionnez une sous-catégorie</option>
               {subCategories.map((subCategory) => (
@@ -684,7 +719,7 @@ const Dashboard = () => {
                 </option>
               ))}
             </select>
-  
+
             <input
               type="text"
               value={productInput.image}
@@ -692,15 +727,15 @@ const Dashboard = () => {
                 setProductInput({ ...productInput, image: e.target.value })
               }
               placeholder="URL de l'image du produit"
-              className="border border-green-500 bg-gray-800 p-2 rounded-full mb-2 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
+              className=" bg-white p-2 rounded-full mb-2 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
             />
-  
+
             <select
               value={productInput.options}
               onChange={(e) =>
                 setProductInput({ ...productInput, options: e.target.value })
               }
-              className="border border-green-500 bg-gray-800 p-2 rounded-full mb-2 w-full focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
+              className=" bg-white p-2 rounded-full mb-2 w-full focus:outline-none h--12 focus:ring-2 focus:ring-green-500 transition duration-200"
             >
               <option value="">Sélectionnez une option</option>
               <option value="avec oeufs">Avec oeufs</option>
@@ -708,17 +743,19 @@ const Dashboard = () => {
               <option value="1 oeuf">1 oeuf</option>
               <option value="2 oeufs">2 oeufs</option>
             </select>
-  
+
             <button
-              onClick={() => updateProduct(productIdToEdit).then(()=>{
-                fetchData("http://localhost:3000/products", setProducts);
-                setIsModalOpen(false);
-              })} // Passer l'ID du produit à mettre à jour
+              onClick={() =>
+                updateProduct(productIdToEdit).then(() => {
+                  fetchData("http://localhost:3000/products", setProducts);
+                  setIsModalOpen(false);
+                })
+              } // Passer l'ID du produit à mettre à jour
               className="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-500 transition duration-200"
             >
               Enregistrer
             </button>
-  
+
             <button
               onClick={() => {
                 setIsModalOpen(false); // Fermer le modal
@@ -732,18 +769,18 @@ const Dashboard = () => {
           </div>
         </div>
       )}
-  
+
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-        {products.map((product) => (
+        {filteredProducts.map((product) => (
           <div
             key={product.id}
             className="bg-gray-800 p-4 rounded-lg shadow-md relative mb-4"
           >
             <h3 className="text-xl font-semibold text-white">{product.name}</h3>
-  
+
             <div className="flex flex-col mt-4">
               <img
-                src={product.image}
+                src={product.imageUrl}
                 alt={product.description || "Image du produit"}
                 className="w-full h-48 object-cover rounded-lg"
               />

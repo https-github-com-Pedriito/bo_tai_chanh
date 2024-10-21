@@ -19,13 +19,13 @@ const Footer = () => {
           </div>
           <div className="flex space-x-6 align-baseline">
             <div>
-              <SocialIcon url="https://www.facebook.com/ShashaThaiGrill/" />
+              <SocialIcon url="https://www.facebook.com/ShashaThaiGrill" />
             </div>
-            <SocialIcon url="https://instagram.com" />
+            <SocialIcon url="https://www.instagram.com/shasha_thai_grill/" />
           </div>
         </div>
         <div className="text-center mt-20 mb-0">
-          <p>&copy; 2024 ShashaThaiGrill All rights reserved.</p>
+          <p>&copy; 2024 Bo Tai Chanh All rights reserved.</p>
         </div>
       </div>
     </footer>
